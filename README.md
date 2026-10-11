@@ -46,6 +46,16 @@ Due to pre-caching of assets in memory, it is okay if some data is swapped to di
 
 Read more at our [documentation site](https://docs.unidotengine.org).
 
+## Command line import
+
+Packages can also be imported without opening the editor window, for example for batch imports or CI:
+
+```sh
+addons/unidot_importer/unidot-import.sh path/to/Package.unitypackage [More.unitypackage ...]
+```
+
+The script runs a headless Godot editor (`godot --headless --editor --path <project> -- --unidot-import=<package>`), imports everything, saves and exits. The exit code tells whether the import worked. Options cover which types to import, timeouts and log files. See [CLI.md](./CLI.md) for all options.
+
 ## Features
 
 - `.unitypackage` importer and translation shim.
@@ -95,7 +105,7 @@ Note that scripts and shaders will need to be ported by hand. However, it will b
 
 * It would be good to double check that all dependencies imported, and then try again.
 
-* If Godot crashes during an import, it may be good to try a smaller import.
+* If Godot crashes during an import, it may be good to try a smaller import, or to import from the [command line](./CLI.md), which skips editor rendering such as thumbnails.
 
 * If importing a subset of files, import assets in the correct order: make sure to do materials after textures, and scenes after models / materials they may need.
   Using the shift key while selecting assets can ensure you include the needed depdencies.

@@ -4,6 +4,9 @@
 @tool
 extends RefCounted
 
+# Emitted when the import of this package has finished, before the next package of a batch starts.
+signal import_completed
+
 const package_file := preload("./package_file.gd")
 const tarfile := preload("./tarfile.gd")
 const import_worker_class := preload("./import_worker.gd")
@@ -1262,6 +1265,7 @@ func on_import_fully_completed():
 			main_dialog.hide()
 	if typeof(ProjectSettings.get_setting("memory/limits/message_queue/max_size_mb")) != TYPE_NIL:
 		ProjectSettings.set_setting("memory/limits/message_queue/max_size_mb", asset_database.orig_max_size_mb)
+	import_completed.emit()
 
 	if not batch_import_file_list.is_empty():
 		var rc = RefCounted.new()

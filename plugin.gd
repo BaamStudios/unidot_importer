@@ -7,6 +7,7 @@ extends EditorPlugin
 const tarfile = preload("./tarfile.gd")
 
 const package_import_dialog_class := preload("./package_import_dialog.gd")
+const cli_import_class := preload("./cli_import.gd")
 
 var package_import_dialog: RefCounted = null
 var last_selected_dir: String = ""
@@ -112,6 +113,11 @@ func _enter_tree():
 	if skeleton_merge_tool_class != null:
 		skeleton_merge_tool_plugin = skeleton_merge_tool_class.new()
 		add_child(skeleton_merge_tool_plugin)
+
+	if cli_import_class.wants_cli_import():
+		var cli_import = cli_import_class.new()
+		cli_import.plugin = self
+		add_child(cli_import)
 
 func _exit_tree():
 	# print("run exit tree")
