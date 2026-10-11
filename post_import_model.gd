@@ -666,7 +666,7 @@ class ParseState:
 						if legacy_material_name.is_empty():
 							legacy_material_name = "No Name"
 						if legacy_material_name_setting == 0:
-							legacy_material_name = sanitize_filename(material_to_texture_name.get(godot_mat_name, godot_mat_name), "_")
+							legacy_material_name = sanitize_filename(material_to_texture_name.get(godot_mat_name, material_to_texture_name.get(mat_name, godot_mat_name)), "_")
 						if legacy_material_name_setting == 2:
 							legacy_material_name = sanitize_filename(source_file_path.get_file().get_basename() + "-" + godot_mat_name, "_")
 

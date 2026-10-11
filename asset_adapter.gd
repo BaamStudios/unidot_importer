@@ -10,6 +10,7 @@ const convert_scene := preload("./convert_scene.gd")
 const raw_parsed_asset := preload("./raw_parsed_asset.gd")
 const bone_map_editor_plugin := preload("./bone_map_editor_plugin.gd")
 const unidot_utils_class = preload("./unidot_utils.gd")
+const fbx_material_textures := preload("./fbx_material_textures.gd")
 
 var unidot_utils = unidot_utils_class.new()
 
@@ -1441,6 +1442,11 @@ class FbxHandler:
 			#animation_name_list = _extract_fbx_objects_ascii("AnimStack", pkgasset, buffer_as_utf8)
 			material_order_by_mesh = _extract_fbx_geometry_material_order_ascii(pkgasset, buffer_as_utf8)
 			fbx_file = _preprocess_fbx_scale_ascii(pkgasset, fbx_file, buffer_as_ascii, importer.keys.get("meshes", {}).get("useFileScale", 0) == 1, importer.keys.get("meshes", {}).get("globalScale", 1))
+		if pkgasset.parsed_meta.is_using_builtin_ufbx():
+			# FBX2glTF fills this from its glTF output; ufbx does not expose the material textures.
+			var material_to_texture_name: Dictionary = fbx_material_textures.extract(fbx_file)
+			pkgasset.log_debug("Material base textures: " + str(material_to_texture_name))
+			pkgasset.parsed_meta.internal_data["material_to_texture_name"] = material_to_texture_name
 		var d := DirAccess.open("res://")
 		var closest_bake_fps: float = 30
 		if fps <= 25:
