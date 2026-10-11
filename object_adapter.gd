@@ -3555,12 +3555,15 @@ class UnidotTerrainData:
 							dict[other_id] = other_object.get_godot_extension()
 
 		#var vertices: PackedVector3Array = PackedVector3Array().duplicate()
-		var heightmap: Dictionary = keys.get("m_Heightmap")
-		self.resolution = heightmap["m_Resolution"]
+		var heightmap: Dictionary = keys.get("m_Heightmap", {})
+		# Unity before 2019.3 stores the size as m_Width / m_Height instead of m_Resolution.
+		self.resolution = heightmap.get("m_Resolution", heightmap.get("m_Width", 0))
+		var heights: PackedInt32Array = PackedInt32Array(heightmap.get("m_Heights", []))
+		if resolution < 2 or resolution * resolution != len(heights):
+			log_warn("Terrain has no readable heightmap (resolution " + str(resolution) + ", " + str(len(heights)) + " heights); skipping terrain mesh")
+			return {}
 		var vertex_count = resolution * resolution
 		var index_count = (resolution - 1) * (resolution - 1)
-		assert(resolution * resolution == len(heightmap["m_Heights"]))
-		var heights: PackedInt32Array = heightmap.get("m_Heights")
 		self.scale = heightmap.get("m_Scale")
 		#var surface = SurfaceTool.new()
 		#surface.begin(Mesh.PRIMITIVE_TRIANGLES)

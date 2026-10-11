@@ -122,5 +122,7 @@ being preprocessed. Use the summary and the `--log` file to judge the result.
   version control or a backup.
 - Do not run a command line import while the same project is open in another
   editor. Both editors would write to `.godot/` and `unidot_asset_database.res`.
+- Files Godot has no importer for, such as `.rtf` or `.docx` manuals, are
+  copied unchanged and do not count as errors.
 - Headless mode skips editor rendering, such as resource thumbnails, so it
   usually needs less memory than an import in the GUI.

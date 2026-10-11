@@ -165,7 +165,32 @@ class AssetHandler:
 
 class DefaultHandler:
 	extends AssetHandler
-	pass
+
+	# Files Godot has no importer for (documents such as .rtf or .docx) are copied
+	# unchanged, like TextHandler, instead of failing the import.
+	var _godot_extensions: Dictionary
+
+	func _init():
+		for ext in ResourceLoader.get_recognized_extensions_for_type("Resource"):
+			_godot_extensions[ext.to_lower()] = true
+
+	func _godot_can_import(pkgasset: Object) -> bool:
+		return _godot_extensions.has(pkgasset.pathname.get_extension().to_lower())
+
+	func get_asset_type(pkgasset: Object) -> int:
+		return ASSET_TYPE_UNKNOWN if _godot_can_import(pkgasset) else ASSET_TYPE_TEXTURE
+
+	func uses_godot_importer(pkgasset: Object) -> bool:
+		return _godot_can_import(pkgasset)
+
+	func write_godot_asset(pkgasset: Object, temp_path: String) -> bool:
+		var ret := super.write_godot_asset(pkgasset, temp_path)
+		# false tells the package dialog that this resource cannot be loaded, so it does not report an error.
+		return ret and _godot_can_import(pkgasset)
+
+	func finished_import(pkgasset: Object, res: Resource):
+		if _godot_can_import(pkgasset):
+			super.finished_import(pkgasset, res)
 
 
 class ImageHandler:
