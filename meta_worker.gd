@@ -32,6 +32,10 @@ func _run_single_item(tw_: Object, thread_subdir: String):
 	if tw.asset.metadata_tar_header != null:
 		var sf = tw.asset.metadata_tar_header.get_stringfile()
 		tw.asset.parsed_meta = asset_database.parse_meta(sf, path)
+	if tw.asset.parsed_meta == null:
+		# Without a meta the dialog would wait forever for this asset; continue with defaults.
+		tw.asset.parsed_meta = asset_database.create_dummy_meta(path)
+		tw.asset.parsed_meta.guid = tw.asset.guid
 	var imp_type: String = tw.asset.parsed_meta.importer_type
 	tw.asset.parsed_meta.dependency_guids = {}
 	#print(path + ": " + imp_type)

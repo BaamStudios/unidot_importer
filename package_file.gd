@@ -32,6 +32,51 @@ class ExtractedTarFile:
 const tarfile := preload("./tarfile.gd")
 
 
+# Stands in for a missing asset.meta. Packages exported by old Unity versions can lack .meta files;
+# Unity then creates default import settings for the file type, and so do we (keeping the package GUID,
+# which other assets in the package use to reference this one).
+class GeneratedMetaFile:
+	var text: String
+
+	func _init(guid: String, path: String):
+		text = default_meta_text(guid, path)
+
+	func get_size() -> int:
+		return len(text.to_utf8_buffer())
+
+	func get_data() -> PackedByteArray:
+		return text.to_utf8_buffer()
+
+	func get_string() -> String:
+		return text
+
+	func get_stringfile() -> Object:
+		var sf = tarfile.StringFile.new()
+		sf.init(text)
+		sf.set_path("generated.meta")
+		return sf
+
+	static func default_meta_text(guid: String, path: String) -> String:
+		const NATIVE_MAIN_OBJECTS := {"mat": 2100000, "anim": 7400000, "controller": 9100000, "overridecontroller": 22100000, "mask": 31900000, "asset": 11400000, "physicmaterial": 13400000, "flare": 12100000, "rendertexture": 8400000, "cubemap": 8900000}
+		var ext := path.get_extension().to_lower()
+		var importer := "DefaultImporter:\n"
+		if ext in ["fbx", "obj", "dae", "3ds", "dxf", "blend", "max", "ma", "mb"]:
+			importer = "ModelImporter:\n  materials:\n    importMaterials: 1\n    materialName: 0\n    materialSearch: 1\n"
+		elif ext in ["png", "jpg", "jpeg", "tga", "tif", "tiff", "psd", "bmp", "gif", "exr", "hdr", "iff", "pict"]:
+			importer = "TextureImporter:\n  textureType: 0\n"
+		elif ext in ["wav", "mp3", "ogg", "aif", "aiff", "flac", "mod", "it", "s3m", "xm"]:
+			importer = "AudioImporter:\n"
+		elif ext == "prefab":
+			importer = "PrefabImporter:\n"
+		elif NATIVE_MAIN_OBJECTS.has(ext):
+			importer = "NativeFormatImporter:\n  mainObjectFileID: %d\n" % NATIVE_MAIN_OBJECTS[ext]
+		elif ext == "cs":
+			importer = "MonoImporter:\n"
+		elif ext == "shader":
+			importer = "ShaderImporter:\n"
+		return "fileFormatVersion: 2\nguid: %s\n%s  userData: \n  assetBundleName: \n  assetBundleVariant: \n" % [guid, importer]
+
+
 class PkgAsset:
 	extends RefCounted
 	var asset_tar_header: RefCounted
@@ -170,6 +215,8 @@ func external_tar_with_filename(source_file: String, full_tmpdir: String=""):
 			guids_to_remove.append(pkgasset.guid)
 		else:
 			# print("Asset " + pkgasset.guid + ": " + path)
+			if not pkgasset.metadata_tar_header:
+				pkgasset.metadata_tar_header = GeneratedMetaFile.new(pkgasset.guid, path)
 			path = match_project_dir_case(path)
 			pkgasset.pathname = path
 			pkgasset.orig_pathname = path
@@ -283,6 +330,8 @@ func init_with_filename(source_file: String):
 			guids_to_remove.append(pkgasset.guid)
 		else:
 			# print("Asset " + pkgasset.guid + ": " + path)
+			if not pkgasset.metadata_tar_header:
+				pkgasset.metadata_tar_header = GeneratedMetaFile.new(pkgasset.guid, path)
 			path = match_project_dir_case(path)
 			pkgasset.pathname = path
 			pkgasset.orig_pathname = path
@@ -388,6 +437,8 @@ func init_with_asset_dir(source_file: String):
 			guids_to_remove.append(pkgasset.guid)
 		else:
 			# print("Asset " + pkgasset.guid + ": " + path)
+			if not pkgasset.metadata_tar_header:
+				pkgasset.metadata_tar_header = GeneratedMetaFile.new(pkgasset.guid, path)
 			path = match_project_dir_case(path)
 			pkgasset.pathname = path
 			pkgasset.orig_pathname = path

@@ -6729,16 +6729,16 @@ class UnidotAssetImporter:
 
 	var preserveHierarchy: bool:
 		get:
-			return keys.get("meshes").get("preserveHierarchy", 0) != 0
+			return keys.get("meshes", {}).get("preserveHierarchy", 0) != 0
 
 	# 0: No compression; 1: keyframe reduction; 2: keyframe reduction and compress
 	# 3: all of the above and choose best curve for runtime memory.
 	func animation_optimizer_settings() -> Dictionary:
-		var rotError: float = keys.get("animations").get("animationRotationError", 0.5)  # Degrees
+		var rotError: float = keys.get("animations", {}).get("animationRotationError", 0.5)  # Degrees
 		var rotErrorHalfRevs: float = rotError / 180  # p_alowed_angular_err is defined this way (divides by PI)
 		return {
-			"enabled": keys.get("animations").get("animationCompression") != 0,
-			"max_linear_error": keys.get("animations").get("animationPositionError", 0.5),
+			"enabled": keys.get("animations", {}).get("animationCompression", 1) != 0,
+			"max_linear_error": keys.get("animations", {}).get("animationPositionError", 0.5),
 			"max_angular_error": rotErrorHalfRevs,  # Godot defaults this value to
 		}
 
@@ -6808,8 +6808,8 @@ class UnidotModelImporter:
 	func generate_bone_map_dict_from_human() -> Dictionary:
 		if not meta.autodetected_bone_map_dict.is_empty():
 			return meta.autodetected_bone_map_dict
-		var humanDescription: Dictionary = self.keys["humanDescription"]
-		var bone_map_dict: Dictionary = generate_bone_map_dict_no_root(self, humanDescription["human"], "humanName", "boneName")
+		var humanDescription: Dictionary = self.keys.get("humanDescription", {})
+		var bone_map_dict: Dictionary = generate_bone_map_dict_no_root(self, humanDescription.get("human", []), "humanName", "boneName")
 
 		if not meta.internal_data.get("humanoid_root_bone", "").is_empty():
 			bone_map_dict[meta.internal_data.get("humanoid_root_bone", "")] = "Root"

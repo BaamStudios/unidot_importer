@@ -521,7 +521,7 @@ func decode_guids() -> bool:
 	var count: int = s.get_32()
 	meta.log_debug(0, "referenced guids count " + str(count) + " at " + str(s.tell()))
 	if count > 10000:
-		meta.log_error(0, "More than 10000 guids referenced is probably an error.")
+		meta.log_fail(0, "More than 10000 guids referenced is probably an error.")
 		return false
 	# null GUID is implied!
 	referenced_guids.push_back(null)
