@@ -107,6 +107,9 @@ Note that scripts and shaders will need to be ported by hand. However, it will b
 
 * If Godot crashes during an import, it may be good to try a smaller import, or to import from the [command line](./CLI.md), which skips editor rendering such as thumbnails.
 
+* Unity packages place everything under `Assets/`. On case-sensitive file systems (Linux, and macOS when formatted case-sensitive), Unidot imports into existing project directories regardless of case, as on Windows: `Assets/RockFREE/...` goes into an existing `assets/` directory, instead of creating a second directory next to it.
+  Avoid moving imported folders afterwards in Godot: the FBX import settings keep their original save paths.
+
 * If importing a subset of files, import assets in the correct order: make sure to do materials after textures, and scenes after models / materials they may need.
   Using the shift key while selecting assets can ensure you include the needed depdencies.
 

@@ -170,6 +170,9 @@ func external_tar_with_filename(source_file: String, full_tmpdir: String=""):
 			guids_to_remove.append(pkgasset.guid)
 		else:
 			# print("Asset " + pkgasset.guid + ": " + path)
+			path = match_project_dir_case(path)
+			pkgasset.pathname = path
+			pkgasset.orig_pathname = path
 			path_to_pkgasset[path] = pkgasset
 			paths.push_back(path)
 
@@ -177,6 +180,33 @@ func external_tar_with_filename(source_file: String, full_tmpdir: String=""):
 		guid_to_pkgasset.erase(guid)
 	paths.sort()
 	return self
+
+
+var _dir_case_cache: Dictionary # lowercase directory path -> directory path as used in the project
+
+
+# Windows treats paths case-insensitively, so there a package's "Assets/Foo/..." lands in an
+# existing "assets/foo/" of the project. On case-sensitive file systems this would create a
+# second directory next to it. Reuse the spelling of existing directories instead, so imports
+# behave the same on every platform. The file name itself is kept as it is.
+func match_project_dir_case(path: String) -> String:
+	var parts := path.split("/")
+	var result := ""
+	for i in range(len(parts) - 1):
+		var seg: String = parts[i]
+		var key := (result + "/" + seg).to_lower()
+		if not _dir_case_cache.has(key):
+			var found := seg
+			var parent := "res://" + result
+			if not DirAccess.dir_exists_absolute(parent.path_join(seg)) and DirAccess.dir_exists_absolute(parent):
+				for existing in DirAccess.get_directories_at(parent):
+					if existing.to_lower() == seg.to_lower():
+						print("Unidot: importing \"" + result.path_join(seg) + "\" into existing directory \"" + result.path_join(existing) + "\"")
+						found = existing
+						break
+			_dir_case_cache[key] = found
+		result = _dir_case_cache[key] if result.is_empty() else result.path_join(_dir_case_cache[key])
+	return result.path_join(parts[-1]) if not result.is_empty() else parts[-1]
 
 
 func init_with_filename(source_file: String):
@@ -253,6 +283,9 @@ func init_with_filename(source_file: String):
 			guids_to_remove.append(pkgasset.guid)
 		else:
 			# print("Asset " + pkgasset.guid + ": " + path)
+			path = match_project_dir_case(path)
+			pkgasset.pathname = path
+			pkgasset.orig_pathname = path
 			path_to_pkgasset[path] = pkgasset
 			paths.push_back(path)
 
@@ -355,6 +388,9 @@ func init_with_asset_dir(source_file: String):
 			guids_to_remove.append(pkgasset.guid)
 		else:
 			# print("Asset " + pkgasset.guid + ": " + path)
+			path = match_project_dir_case(path)
+			pkgasset.pathname = path
+			pkgasset.orig_pathname = path
 			path_to_pkgasset[path] = pkgasset
 			paths.push_back(path)
 
